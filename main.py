@@ -1,9 +1,12 @@
 import os
 import json
 
+from dominate.tags import div as div1, div as div2, div as div3, div as div4, div as div5, div as div6, div as div7
 from telethon import TelegramClient
 from elasticsearch import Elasticsearch
 from dotenv import load_dotenv
+import dominate
+from dominate.tags import *
 
 load_dotenv()
 
@@ -69,23 +72,13 @@ def search_elastic():
                     "raw_text": companyName
                 }
             },
-            "size": 10,
-            "sort": [
-                {
-                    "timestamp": {
-                        "order": "asc"
-                    }
-                }
-            ]
+            "size": 10
         }
         result = elasticClient.search(body=body, index='telegram_messages')
         out = transform_hits(companyName, result)
         output.append(out)
         print("Company : ", companyName, " result ", result)
-    json_object = json.dumps(output,indent=3)
-    with open("results.json", "w") as outfile:
-        outfile.truncate(0)
-        outfile.write(json_object)
+    render_page(output)
 
 
 def transform_hits(companyName, result):
@@ -93,8 +86,15 @@ def transform_hits(companyName, result):
     result_hits = []
     for raw_hit in hits:
         raw_hit = raw_hit['_source']
+
+        textRaw = raw_hit['raw_text']
+
+        # if the text is too big..
+        if len(textRaw) > 150:
+            textRaw = textRaw[:130]+"..."
+
         tran_hits = {
-            'text': raw_hit['raw_text'],
+            'text': textRaw,
             'timestamp': raw_hit['timestamp'],
             'media_type': raw_hit['media']['type']
         }
@@ -106,13 +106,65 @@ def transform_hits(companyName, result):
     return out
 
 
+def render_page(companyData):
+    pageTitle = 'Company Arrival Sheet'
+    doc = dominate.document(title=pageTitle)
+    with doc.head:
+        # include the bootstrap magic
+        link(rel='stylesheet',
+             href='http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css')
+        script(type='text/javascript', src='http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js')
+        script(type='text/javascript', src='http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js')
+
+    with doc:
+        with div1(cls='container'):
+            with div2(cls='starter-template'):
+                h1(pageTitle)
+            with div3(cls='menu'):
+                with div4(cls='accordion accordion-flush', id="accordianMain"):
+                    count = 0
+                    for companyEntry in companyData:  # for each college
+                        count = count + 1
+                        # generate the heading used for toggling
+                        with div5(cls='accordion-group'):
+                            id = 'item' + str(count)
+                            with div6(cls='accordion-heading'):
+                                with a(companyEntry['companyName'], cls='accordion-toggle', href='#' + id):
+                                    attr({
+                                        'data-toggle': 'collapse'
+                                    })
+                            with div(id=id, cls='accordion-body collapse'):
+                                attr({
+                                    'data-bs-parent': '#accordianMain'
+                                })
+                                with div7(cls='accordion-inner'):
+                                    with table(cls='table table-striped table-condensed'):
+                                        with thead():
+                                            # the table header for each company entry
+                                            with tr():
+                                                th("Text")
+                                                th("Time")
+                                                th("Media Type")
+                                        with tbody():
+                                            for hit in companyEntry['searchData']:
+                                                # render each hit to a table row
+                                                with tr():
+                                                    td(hit['text'])
+                                                    td(hit['timestamp'])
+                                                    td(hit['media_type'])
+
+    with open("results.html", "w") as outfile:
+        outfile.truncate(0)
+        outfile.write(doc.render())
+
+
 async def main():
     global tnp_id
     load_companies()
     if tnp_id == -1:
         await dump_telegram_ids()
         tnp_id = int(input("Check the Dump above and enter the tnp chat id : "))
-    await dump_telegram_messages()
+    # await dump_telegram_messages()
     search_elastic()
 
 
