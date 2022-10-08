@@ -112,7 +112,7 @@ async def main():
     if tnp_id == -1:
         await dump_telegram_ids()
         tnp_id = int(input("Check the Dump above and enter the tnp chat id : "))
-    # await dump_telegram_messages()
+    await dump_telegram_messages()
     search_elastic()
 
 
