@@ -1,0 +1,5 @@
+/.env
+/*.session
+/es_data/
+/venv/
+/results.json
