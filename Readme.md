@@ -5,6 +5,11 @@
 
 This project works simply by dumping all the telegram messages form the Tnp group ( Telethon MTProto user api) and 
 then using elastic search to find when was the first occurrence of the company name in the group
+<br>
+The data generated may not be correct if the company pdf wasn't shared in the group. 
+You can add missing company names in **companies.json**. 
+
+
 
 ### System Requirement 
 
@@ -49,6 +54,7 @@ Please enter your phone (or bot token): +919700000000
 5. If you have not configured the tnp chat Id in the env file. The app will dump all the ids of each chat your account is in, find out the chat id, corresponding 
 to the tnp group. Once u have the chat ID add it to the env file,and it won't prompt for following sessions.
 6. The rest of the process is automated.
+7. A result.html file would be generated, which contains the report.
 7. The telegram message dump line can be commented out, once it's done for the first time
 ```python
 async def main():
@@ -61,3 +67,7 @@ async def main():
     search_elastic()
 ```
 
+### Possible Improvements 
+* UI of the report
+* New data sources eg. emails
+* Parsing PDF's 
