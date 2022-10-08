@@ -1,10 +1,9 @@
 import os
 import json
-
+import dominate
 from telethon import TelegramClient
 from elasticsearch import Elasticsearch
 from dotenv import load_dotenv
-import dominate
 from dominate.tags import *
 
 load_dotenv()
@@ -63,7 +62,7 @@ def load_companies():
 
 
 def search_elastic():
-    output = []
+    elastic_output = []
     for companyName in companies:
         body = {
             "query": {
@@ -74,10 +73,10 @@ def search_elastic():
             "size": 10
         }
         result = elasticClient.search(body=body, index='telegram_messages')
-        out = transform_hits(companyName, result)
-        output.append(out)
+        transformed_hit = transform_hits(companyName, result)
+        elastic_output.append(transformed_hit)
         print("Company : ", companyName, " result ", result)
-    render_page(output)
+    render_page(elastic_output)
 
 
 def transform_hits(companyName, result):
@@ -90,7 +89,7 @@ def transform_hits(companyName, result):
 
         # if the text is too big..
         if len(textRaw) > 150:
-            textRaw = textRaw[:130]+"..."
+            textRaw = textRaw[:130] + "..."
 
         tran_hits = {
             'text': textRaw,
@@ -125,36 +124,40 @@ def render_page(companyData):
                     for companyEntry in companyData:  # for each college
                         count = count + 1
                         # generate the heading used for toggling
-                        with div(cls='accordion-group'):
-                            id = 'item' + str(count)
-                            with div(cls='accordion-heading'):
-                                with a(companyEntry['companyName'], cls='accordion-toggle', href='#' + id):
-                                    attr({
-                                        'data-toggle': 'collapse'
-                                    })
-                            with div(id=id, cls='accordion-body collapse'):
-                                attr({
-                                    'data-bs-parent': '#accordianMain'
-                                })
-                                with div(cls='accordion-inner'):
-                                    with table(cls='table table-striped table-condensed'):
-                                        with thead():
-                                            # the table header for each company entry
-                                            with tr():
-                                                th("Text")
-                                                th("Time")
-                                                th("Media Type")
-                                        with tbody():
-                                            for hit in companyEntry['searchData']:
-                                                # render each hit to a table row
-                                                with tr():
-                                                    td(hit['text'])
-                                                    td(hit['timestamp'])
-                                                    td(hit['media_type'])
+                        render_company_data(companyEntry, count)
 
     with open("results.html", "w") as outfile:
         outfile.truncate(0)
         outfile.write(doc.render())
+
+
+@div(cls='accordion-group')
+def render_company_data(companyEntry, count):
+    id = 'item' + str(count)
+    with div(cls='accordion-heading'):
+        with a(companyEntry['companyName'], cls='accordion-toggle', href='#' + id):
+            attr({
+                'data-toggle': 'collapse'
+            })
+    with div(id=id, cls='accordion-body collapse'):
+        attr({
+            'data-bs-parent': '#accordianMain'
+        })
+        with div(cls='accordion-inner'):
+            with table(cls='table table-striped table-condensed'):
+                with thead():
+                    # the table header for each company entry
+                    with tr():
+                        th("Text")
+                        th("Time")
+                        th("Media Type")
+                with tbody():
+                    for hit in companyEntry['searchData']:
+                        # render each hit to a table row
+                        with tr():
+                            td(hit['text'])
+                            td(hit['timestamp'])
+                            td(hit['media_type'])
 
 
 async def main():
