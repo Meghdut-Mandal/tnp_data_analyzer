@@ -1,7 +1,6 @@
 import os
 import json
 
-from dominate.tags import div as div1, div as div2, div as div3, div as div4, div as div5, div as div6, div as div7
 from telethon import TelegramClient
 from elasticsearch import Elasticsearch
 from dotenv import load_dotenv
@@ -117,18 +116,18 @@ def render_page(companyData):
         script(type='text/javascript', src='http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js')
 
     with doc:
-        with div1(cls='container'):
-            with div2(cls='starter-template'):
+        with div(cls='container'):
+            with div(cls='starter-template'):
                 h1(pageTitle)
-            with div3(cls='menu'):
-                with div4(cls='accordion accordion-flush', id="accordianMain"):
+            with div(cls='menu'):
+                with div(cls='accordion accordion-flush', id="accordianMain"):
                     count = 0
                     for companyEntry in companyData:  # for each college
                         count = count + 1
                         # generate the heading used for toggling
-                        with div5(cls='accordion-group'):
+                        with div(cls='accordion-group'):
                             id = 'item' + str(count)
-                            with div6(cls='accordion-heading'):
+                            with div(cls='accordion-heading'):
                                 with a(companyEntry['companyName'], cls='accordion-toggle', href='#' + id):
                                     attr({
                                         'data-toggle': 'collapse'
@@ -137,7 +136,7 @@ def render_page(companyData):
                                 attr({
                                     'data-bs-parent': '#accordianMain'
                                 })
-                                with div7(cls='accordion-inner'):
+                                with div(cls='accordion-inner'):
                                     with table(cls='table table-striped table-condensed'):
                                         with thead():
                                             # the table header for each company entry
