@@ -1,10 +1,11 @@
-import os
 import json
+import os
+
 import dominate
-from telethon import TelegramClient
-from elasticsearch import Elasticsearch
-from dotenv import load_dotenv
 from dominate.tags import *
+from dotenv import load_dotenv
+from elasticsearch import Elasticsearch
+from telethon import TelegramClient
 
 load_dotenv()
 
@@ -166,7 +167,7 @@ async def main():
     if tnp_id == -1:
         await dump_telegram_ids()
         tnp_id = int(input("Check the Dump above and enter the tnp chat id : "))
-    # await dump_telegram_messages()
+    await dump_telegram_messages()
     search_elastic()
 
 
